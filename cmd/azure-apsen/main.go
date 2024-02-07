@@ -72,6 +72,7 @@ func RunChecks(config *internal.Config, azClient *internal.AzureClient) {
 
 func main() {
 	configPath := flag.String("config", "config.hcl", "configuration file path.")
+	flag.Parse()
 
 	log.Printf("Loading config from '%s'", *configPath)
 	config := internal.MustLoadConfig(*configPath)
