@@ -78,7 +78,6 @@ func main() {
 	config := internal.MustLoadConfig(*configPath)
 
 	az := config.Azure
-
 	azClient := internal.NewAzureClient(az.TenantId,
 		internal.SimpleAzureAuth(az.ClientId, az.ClientSecret),
 	)
