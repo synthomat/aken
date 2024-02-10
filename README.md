@@ -1,12 +1,16 @@
 # Application Secret Expiration Notifier for Microsoft Azure
 
 This application will check your Azure Application Secrets/Tokens and send a notification about their expiration date.
-The parameter `checks.threshold_days` controls how many days in advance a secret will be reported ahead of it's expiration.
+The parameter `checks.threshold_days` controls how many days in advance a secret will be reported before it's expiration.
+
+**Build**
+    
+    $ go build -o aspen cmd/azure-apsen/main.go
 
 **Usage:**
 ```bash
 ./aspen --help
-Usage of ./main:
+Usage of ./aspen:
   -config string
         configuration file path. (default "config.hcl")
 ```
