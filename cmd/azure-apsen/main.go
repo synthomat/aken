@@ -81,6 +81,7 @@ func main() {
 	azClient := internal.NewAzureClient(az.TenantId,
 		internal.SimpleAzureAuth(az.ClientId, az.ClientSecret),
 	)
+	RunChecks(config, azClient)
 
 	if config.Notifications == nil || len(config.Notifications.Providers) == 0 {
 		log.Println("No notifications will be sent as no providers are configured.")

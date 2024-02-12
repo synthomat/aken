@@ -3,7 +3,7 @@ package internal
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/flosch/pongo2/v6"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -18,15 +18,61 @@ type SlackNotifier struct {
 	ChannelId string
 }
 
-func (sn *SlackNotifier) Notify(buckets *Buckets) {
-	tplFile, err := res.ReadFile("resources/slack-notification.json.j2")
-	t, _ := pongo2.FromBytes(tplFile)
+type js map[string]any
 
-	slackMessage, _ := t.Execute(pongo2.Context{
-		"channelId": sn.ChannelId,
-		"buckets":   buckets,
+func Buckets2SlackMsg(buckets *Buckets) []any {
+	message := []any{
+		js{
+			"type": "section",
+			"text": js{
+				"type": "mrkdwn",
+				"text": "🗓️ Here comes the *App Secret Expiration Report*",
+			},
+		},
+	}
+
+	for _, bucket := range *buckets {
+		if len(bucket.Secrets) == 0 {
+			continue
+		}
+
+		message = append(message, js{
+			"type": "header",
+			"text": js{
+				"type": "plain_text",
+				"text": fmt.Sprintf("%s – %s", bucket.From.Format("2006-01-02"), bucket.To.Format("2006-01-02")),
+			},
+		})
+
+		for _, sec := range bucket.Secrets {
+			message = append(message, js{
+				"type": "section",
+				"text": js{
+					"type": "mrkdwn",
+					"text": fmt.Sprintf("<https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Credentials/appId/%s|*%s*> / %s: %s",
+						sec.App.AppId, sec.App.DisplayName, sec.DisplayName, sec.EndDateTime.Format("2006-01-02 15:04:05")),
+				},
+			})
+		}
+	}
+
+	message = append(message, js{
+		"type": "divider",
 	})
-	req, _ := http.NewRequest("POST", "https://slack.com/api/chat.postMessage", bytes.NewReader([]byte(slackMessage)))
+
+	return message
+}
+
+func (sn *SlackNotifier) Notify(buckets *Buckets) {
+
+	slackMessage := js{
+		"channel": sn.ChannelId,
+		"blocks":  Buckets2SlackMsg(buckets),
+	}
+
+	plainJson, _ := json.Marshal(slackMessage)
+
+	req, _ := http.NewRequest("POST", "https://slack.com/api/chat.postMessage", bytes.NewReader(plainJson))
 	req.Header.Set("Content-type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+sn.ApiKey)
 	c := http.Client{}
