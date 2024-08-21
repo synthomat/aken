@@ -30,7 +30,7 @@ checks {
 
   # The schedule is controlled with the cron syntax which can be
   # tested at https://crontab.guru/
-  schedule_cron = "* 1 * * *" # Will run daily at 1am
+  schedule_cron = "0 1 * * *" # Will run daily at 1am
 }
 
 notifications {
